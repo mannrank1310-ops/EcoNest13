@@ -1,0 +1,1631 @@
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { 
+  ShoppingCart, Search, Menu, X, ChevronRight, Star, 
+  Leaf, Trash2, Plus, Minus, CreditCard, Truck, 
+  ShieldCheck, ArrowLeft, Download, Printer, CheckCircle2,
+  Filter, History, Info, Package
+} from 'lucide-react';
+
+// --- THEME & CONSTANTS ---
+const THEME = {
+  forest: '#244C3A',
+  sage: '#A7B99E',
+  cream: '#F8F6EF',
+  white: '#FFFFFF',
+  charcoal: '#242824',
+  sand: '#E7DDCB'
+};
+
+const CATEGORIES = [
+  "Bamboo Bottles",
+  "Reusable Bags",
+  "Plantable Stationery",
+  "Eco-Friendly Notebooks",
+  "Reusable Lunchboxes"
+];
+
+// --- MOCK PRODUCT DATA ---
+const PRODUCTS = [
+  {
+    id: 'b1',
+    name: "Classic Bamboo Hydration Bottle",
+    category: "Bamboo Bottles",
+    price: 1299,
+    originalPrice: 1499,
+    image: "https://images.unsplash.com/photo-1605273272990-2bf7f45700fc?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Double-walled insulation meets sustainable bamboo.",
+    desc: "Keep your drinks cold for 24 hours or hot for 12 with our premium bamboo-wrapped stainless steel bottle. Naturally anti-bacterial and completely BPA-free.",
+    materials: ["Sustainably sourced bamboo", "18/8 Stainless Steel", "Food-grade silicone seal"],
+    specs: "Capacity: 500ml | Weight: 280g",
+    rating: 4.8,
+    reviews: 124,
+    stock: 45,
+    isNew: true
+  },
+  {
+    id: 'b2',
+    name: "Thermo-Steel Minimalist Flask",
+    category: "Bamboo Bottles",
+    price: 1599,
+    image: "https://images.unsplash.com/photo-1618365908648-723d5811d440?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Sleek, temperature-retaining travel flask.",
+    desc: "Designed for the modern commuter. This flask features a matte finish and a bamboo lid, ensuring your coffee stays piping hot during your morning transit.",
+    materials: ["Recycled Stainless Steel", "Bamboo Lid"],
+    specs: "Capacity: 750ml",
+    rating: 4.6,
+    reviews: 89,
+    stock: 20
+  },
+  {
+    id: 'b3',
+    name: "Active Bamboo Sport Bottle",
+    category: "Bamboo Bottles",
+    price: 1099,
+    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Lightweight single-wall bottle for active days.",
+    desc: "The perfect companion for yoga or hiking. Lightweight and durable with a convenient carry loop.",
+    materials: ["Bamboo", "Silicone", "Aluminium inner"],
+    specs: "Capacity: 600ml",
+    rating: 4.5,
+    reviews: 56,
+    stock: 12
+  },
+  {
+    id: 'bag1',
+    name: "Everyday Canvas Tote",
+    category: "Reusable Bags",
+    price: 499,
+    originalPrice: 699,
+    image: "https://images.unsplash.com/photo-1597349141042-49cc7ea47c61?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Heavy-duty organic cotton tote.",
+    desc: "Say goodbye to plastic bags forever. Our extra-thick canvas tote can carry groceries, books, or beach gear with ease.",
+    materials: ["100% Organic Cotton Canvas"],
+    specs: "Dimensions: 15\" x 16\" | Capacity: 15kg",
+    rating: 4.9,
+    reviews: 210,
+    stock: 150
+  },
+  {
+    id: 'bag2',
+    name: "Organic Mesh Produce Bags (Set of 3)",
+    category: "Reusable Bags",
+    price: 349,
+    image: "https://images.unsplash.com/photo-1610419993549-7561f38e0787?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Breathable storage for fruits and veggies.",
+    desc: "Keep your produce fresh longer. These washable mesh bags are perfect for farmers market hauls and supermarket runs.",
+    materials: ["Unbleached Organic Cotton"],
+    specs: "Sizes: S, M, L included",
+    rating: 4.7,
+    reviews: 145,
+    stock: 80
+  },
+  {
+    id: 'bag3',
+    name: "Jute Market Shopper",
+    category: "Reusable Bags",
+    price: 599,
+    image: "https://images.unsplash.com/photo-1595225328846-563630f9a2b8?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Rustic, durable, and highly sustainable.",
+    desc: "Woven from natural jute fibers, this structured bag is ideal for heavy loads and adds a rustic touch to your errands.",
+    materials: ["Natural Jute", "Cotton Webbing Handles"],
+    specs: "Dimensions: 14\" x 14\" x 8\"",
+    rating: 4.4,
+    reviews: 67,
+    stock: 40
+  },
+  {
+    id: 'bag4',
+    name: "Recycled PET Weekend Duffel",
+    category: "Reusable Bags",
+    price: 1899,
+    image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Travel sustainably with this spacious duffel.",
+    desc: "Made entirely from recycled plastic bottles, this water-resistant duffel is perfect for weekend getaways.",
+    materials: ["100% Recycled PET (rPET)"],
+    specs: "Capacity: 30L",
+    rating: 4.8,
+    reviews: 32,
+    stock: 15
+  },
+  {
+    id: 'stat1',
+    name: "Plantable Seed Pencils (Pack of 5)",
+    category: "Plantable Stationery",
+    price: 249,
+    image: "https://images.unsplash.com/photo-1585336261022-680e295ce3fe?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Write, plant, and watch them grow.",
+    desc: "Once these pencils become too short to use, plant the tip in soil and water it. Each pencil contains different herb seeds like Basil, Tomato, and Coriander.",
+    materials: ["Recycled paper body", "Graphite core", "Non-GMO seeds"],
+    specs: "Pack of 5 pencils",
+    rating: 4.9,
+    reviews: 450,
+    stock: 200,
+    isNew: true
+  },
+  {
+    id: 'stat2',
+    name: "Biodegradable Seed Pens (Pack of 3)",
+    category: "Plantable Stationery",
+    price: 299,
+    image: "https://images.unsplash.com/photo-1620600100789-d102e3b97b0a?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Smooth writing with zero plastic waste.",
+    desc: "The barrel is made from recycled cardboard and the end capsule contains seeds. A perfect gift for eco-conscious students or professionals.",
+    materials: ["Cardboard", "Metal refill", "Seeds"],
+    specs: "Blue Ink | Pack of 3",
+    rating: 4.6,
+    reviews: 112,
+    stock: 120
+  },
+  {
+    id: 'stat3',
+    name: "Wildflower Seed Greeting Cards",
+    category: "Plantable Stationery",
+    price: 399,
+    image: "https://images.unsplash.com/photo-1518331647614-7a1f04cd34ce?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Send love that blooms.",
+    desc: "Set of 5 greeting cards embedded with wildflower seeds. The recipient can plant the card to grow a mini garden.",
+    materials: ["Seed paper (cotton waste base)"],
+    specs: "5 Cards with Recycled Envelopes",
+    rating: 4.8,
+    reviews: 88,
+    stock: 60
+  },
+  {
+    id: 'note1',
+    name: "Cork Bound A5 Journal",
+    category: "Eco-Friendly Notebooks",
+    price: 599,
+    originalPrice: 799,
+    image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Soft, durable, and naturally water-resistant.",
+    desc: "Harvested sustainably without harming the tree, cork provides a unique, premium feel. Inside, find 160 pages of recycled paper.",
+    materials: ["Natural Cork Cover", "100gsm Recycled Paper"],
+    specs: "A5 Size | 160 Pages | Dotted",
+    rating: 4.7,
+    reviews: 205,
+    stock: 75
+  },
+  {
+    id: 'note2',
+    name: "Upcycled Cotton Paper Planner",
+    category: "Eco-Friendly Notebooks",
+    price: 649,
+    image: "https://images.unsplash.com/photo-1531346878377-a541e4ab0e43?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Tree-free paper made from textile waste.",
+    desc: "Every page in this undated planner is crafted from cotton rags salvaged from the garment industry. Beautiful texture and completely tree-free.",
+    materials: ["Upcycled Cotton Paper"],
+    specs: "A5 Size | 120 Pages | Undated Planner Layout",
+    rating: 4.5,
+    reviews: 94,
+    stock: 50
+  },
+  {
+    id: 'note3',
+    name: "Bamboo Cover Pocket Notepad",
+    category: "Eco-Friendly Notebooks",
+    price: 349,
+    image: "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Sturdy bamboo covers protect your quick thoughts.",
+    desc: "Perfect for everyday carry. The hard bamboo covers protect the recycled pages inside, no matter where you toss it.",
+    materials: ["Bamboo Covers", "Recycled Paper"],
+    specs: "A6 Size | 80 Pages | Lined",
+    rating: 4.3,
+    reviews: 67,
+    stock: 110
+  },
+  {
+    id: 'lunch1',
+    name: "Stainless Steel 3-Tier Bento",
+    category: "Reusable Lunchboxes",
+    price: 1499,
+    image: "https://images.unsplash.com/photo-1589311352467-96a60dbcc602?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "The classic, unbreakable lunch solution.",
+    desc: "Keep your meals separated and secure. Made from food-grade stainless steel, it won't retain odors or stains and lasts a lifetime.",
+    materials: ["304 Food-Grade Stainless Steel"],
+    specs: "Capacity: 1200ml | 3 Tiers",
+    rating: 4.9,
+    reviews: 310,
+    stock: 45
+  },
+  {
+    id: 'lunch2',
+    name: "Bamboo Fiber Bento Box",
+    category: "Reusable Lunchboxes",
+    price: 899,
+    image: "https://images.unsplash.com/photo-1590867087595-36070a9cc866?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Lightweight and colourful plant-based lunchbox.",
+    desc: "A great alternative to plastic. Includes a silicone strap to keep it tightly closed and a handy divider inside.",
+    materials: ["Bamboo Fiber", "Cornstarch", "Melamine binder"],
+    specs: "Capacity: 800ml",
+    rating: 4.4,
+    reviews: 128,
+    stock: 85
+  },
+  {
+    id: 'lunch3',
+    name: "Glass Meal Prep Container (Set of 2)",
+    category: "Reusable Lunchboxes",
+    price: 1199,
+    originalPrice: 1399,
+    image: "https://images.unsplash.com/photo-1536640712-4d4c36ef0e12?auto=format&fit=crop&q=80&w=800",
+    shortDesc: "Oven-safe glass with bamboo lids.",
+    desc: "Prep, store, heat, and eat. These durable borosilicate glass containers feature airtight bamboo lids that double as small cutting boards.",
+    materials: ["Borosilicate Glass", "Bamboo", "Silicone Seal"],
+    specs: "Capacity: 1000ml each",
+    rating: 4.8,
+    reviews: 175,
+    stock: 30
+  }
+];
+
+// --- UTILITIES ---
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+  }).format(amount);
+};
+
+const generateOrderId = () => {
+  return 'EN' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+};
+
+export default function App() {
+  // --- STATE ---
+  const [currentView, setCurrentView] = useState('home'); // home, shop, product, cart, checkout, confirmation, impact, orders
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // Cart & Order State
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false); // Mobile menu / drawer toggle
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Checkout State
+  const [checkoutStep, setCheckoutStep] = useState(1);
+  const [customerDetails, setCustomerDetails] = useState({
+    fullName: '', email: '', mobile: '', address: '', street: '', 
+    landmark: '', city: '', state: '', pinCode: '', deliveryInstructions: ''
+  });
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [completedOrder, setCompletedOrder] = useState(null);
+  
+  // New State for Order History
+  const [orders, setOrders] = useState([]);
+
+  // --- LOCAL STORAGE SYNC ---
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('ecoNestCart');
+      if (savedCart) setCart(JSON.parse(savedCart));
+      
+      const savedOrders = localStorage.getItem('ecoNestOrders');
+      if (savedOrders) setOrders(JSON.parse(savedOrders));
+    } catch (e) { console.error("Could not load local data"); }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('ecoNestCart', JSON.stringify(cart));
+  }, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem('ecoNestOrders', JSON.stringify(orders));
+  }, [orders]);
+
+  // --- CART LOGIC ---
+  const addToCart = (product, quantity = 1) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
+      if (existing) {
+        return prev.map(item => 
+          item.id === product.id 
+            ? { ...item, quantity: Math.min(item.quantity + quantity, item.stock) } 
+            : item
+        );
+      }
+      return [...prev, { ...product, quantity }];
+    });
+    // Visual feedback could go here
+  };
+
+  const updateQuantity = (id, delta) => {
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQ = item.quantity + delta;
+        if (newQ > 0 && newQ <= item.stock) return { ...item, quantity: newQ };
+      }
+      return item;
+    }));
+  };
+
+  const removeFromCart = (id) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
+  const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const deliveryCharge = cartSubtotal > 2000 ? 0 : 99; // Free shipping over 2000
+  const tax = Math.round(cartSubtotal * 0.05); // 5% mock tax
+  const cartTotal = cartSubtotal + (cart.length > 0 ? deliveryCharge : 0) + tax;
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  // --- NAVIGATION HELPERS ---
+  const navigateTo = (view, data = null) => {
+    setCurrentView(view);
+    setIsMobileMenuOpen(false);
+    setIsCartOpen(false);
+    window.scrollTo(0, 0);
+    if (view === 'product') setSelectedProduct(data);
+    if (view === 'shop' && data) setSelectedCategory(data); // data is category name
+    if (view !== 'shop') setSearchQuery(''); // Clear search if leaving shop
+  };
+
+  // --- COMPONENTS ---
+  const Header = () => (
+    <header className="sticky top-0 z-50 bg-[#F8F6EF]/95 backdrop-blur-sm border-b border-[#A7B99E]/30">
+      {/* Announcement Bar */}
+      <div className="bg-[#244C3A] text-[#F8F6EF] text-xs text-center py-2 font-medium tracking-wide">
+        Make the sustainable switch — better everyday essentials, thoughtfully chosen.
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 -ml-2 mr-2 md:hidden text-[#242824]"
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {/* Logo */}
+          <div 
+            className="flex items-center cursor-pointer group"
+            onClick={() => navigateTo('home')}
+          >
+            <Leaf className="h-6 w-6 text-[#244C3A] mr-2 group-hover:rotate-12 transition-transform" />
+            <span className="font-bold text-xl tracking-tight text-[#244C3A]">EcoNest</span>
+          </div>
+
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex space-x-8">
+            <button onClick={() => navigateTo('home')} className="text-[#242824] hover:text-[#244C3A] font-medium transition-colors">Home</button>
+            <button onClick={() => navigateTo('shop', 'All')} className="text-[#242824] hover:text-[#244C3A] font-medium transition-colors">Shop All</button>
+            <div className="relative group">
+              <button className="text-[#242824] hover:text-[#244C3A] font-medium transition-colors flex items-center">
+                Categories <ChevronRight className="h-4 w-4 ml-1 rotate-90" />
+              </button>
+              <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden hidden group-hover:block border border-[#E7DDCB]">
+                {CATEGORIES.map(cat => (
+                  <button 
+                    key={cat}
+                    onClick={() => navigateTo('shop', cat)}
+                    className="block w-full text-left px-4 py-2 text-sm text-[#242824] hover:bg-[#F8F6EF]"
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button onClick={() => navigateTo('impact')} className="text-[#242824] hover:text-[#244C3A] font-medium transition-colors">Our Impact</button>
+          </nav>
+
+          {/* Icons */}
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => navigateTo('orders')}
+              className="p-2 text-[#242824] hover:text-[#244C3A] transition-colors hidden sm:block"
+              title="Order History"
+            >
+              <History size={20} />
+            </button>
+            <button 
+              onClick={() => { navigateTo('shop'); document.getElementById('searchInput')?.focus(); }}
+              className="p-2 text-[#242824] hover:text-[#244C3A] transition-colors hidden sm:block"
+            >
+              <Search size={20} />
+            </button>
+            <button 
+              onClick={() => navigateTo('cart')}
+              className="p-2 text-[#242824] hover:text-[#244C3A] transition-colors relative"
+            >
+              <ShoppingCart size={20} />
+              {cartItemCount > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-[#244C3A] rounded-full">
+                  {cartItemCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-white border-b border-[#E7DDCB] px-4 py-4 space-y-3 shadow-lg absolute w-full">
+          <button onClick={() => navigateTo('home')} className="block w-full text-left font-medium py-2">Home</button>
+          <button onClick={() => navigateTo('shop', 'All')} className="block w-full text-left font-medium py-2">Shop All</button>
+          <div className="pl-4 space-y-2 border-l-2 border-[#A7B99E] my-2">
+            {CATEGORIES.map(cat => (
+              <button 
+                key={cat}
+                onClick={() => navigateTo('shop', cat)}
+                className="block w-full text-left text-sm py-1 text-gray-600"
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => navigateTo('impact')} className="block w-full text-left font-medium py-2">Our Impact</button>
+          <button onClick={() => navigateTo('orders')} className="block w-full text-left font-medium py-2 flex items-center">
+             <History size={18} className="mr-2"/> My Orders
+          </button>
+        </div>
+      )}
+    </header>
+  );
+
+  const ProductCard = ({ product }) => (
+    <div className="group relative bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full border border-transparent hover:border-[#E7DDCB] overflow-hidden">
+      {product.isNew && (
+        <div className="absolute top-3 left-3 z-10 bg-[#A7B99E] text-[#244C3A] text-xs font-bold px-2 py-1 rounded">
+          NEW
+        </div>
+      )}
+      <div 
+        className="aspect-w-1 aspect-h-1 w-full overflow-hidden bg-gray-200 cursor-pointer"
+        onClick={() => navigateTo('product', product)}
+      >
+        <img
+          src={product.image}
+          alt={product.name}
+          className="h-64 w-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+      <div className="p-4 flex flex-col flex-grow">
+        <p className="text-sm text-gray-500 mb-1">{product.category}</p>
+        <h3 
+          className="text-lg font-medium text-[#242824] mb-1 cursor-pointer hover:text-[#244C3A] line-clamp-2"
+          onClick={() => navigateTo('product', product)}
+        >
+          {product.name}
+        </h3>
+        <div className="flex items-center mb-2">
+          <Star className="h-4 w-4 text-yellow-400 fill-current" />
+          <span className="text-sm text-gray-600 ml-1">{product.rating} ({product.reviews})</span>
+        </div>
+        <div className="mt-auto flex items-center justify-between pt-4">
+          <div>
+            <span className="text-lg font-bold text-[#242824]">{formatCurrency(product.price)}</span>
+            {product.originalPrice && (
+              <span className="text-sm text-gray-400 line-through ml-2">{formatCurrency(product.originalPrice)}</span>
+            )}
+          </div>
+          <button 
+            onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+            className="bg-[#F8F6EF] p-2 rounded-full text-[#244C3A] hover:bg-[#244C3A] hover:text-white transition-colors"
+            title="Add to Cart"
+          >
+            <Plus size={20} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const HomeView = () => (
+    <div className="animate-in fade-in duration-500">
+      {/* Hero Section */}
+      <section className="relative bg-[#244C3A] text-[#F8F6EF] overflow-hidden">
+        <div className="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 relative z-10 flex flex-col md:flex-row items-center">
+          <div className="md:w-1/2 pr-8">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6 leading-tight">
+              A Better Way to Live,<br/>Every Day.
+            </h1>
+            <p className="text-lg md:text-xl mb-8 text-[#A7B99E] max-w-lg">
+              Discover thoughtfully designed essentials that make sustainable living simple, stylish, and practical.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <button 
+                onClick={() => navigateTo('shop')}
+                className="bg-[#F8F6EF] text-[#244C3A] px-8 py-3 rounded-full font-semibold hover:bg-white transition-colors shadow-lg"
+              >
+                Shop Sustainable Products
+              </button>
+              <button className="bg-transparent border border-[#A7B99E] text-[#F8F6EF] px-8 py-3 rounded-full font-semibold hover:bg-[#A7B99E]/20 transition-colors">
+                Explore Our Mission
+              </button>
+            </div>
+          </div>
+          <div className="md:w-1/2 mt-12 md:mt-0 relative">
+             {/* Decorative element could go here, relying on bg image for now */}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Categories */}
+      <section className="py-16 bg-[#F8F6EF]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center text-[#244C3A] mb-12">Shop by Category</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {CATEGORIES.map((cat, i) => (
+              <div 
+                key={cat} 
+                onClick={() => navigateTo('shop', cat)}
+                className="group cursor-pointer flex flex-col items-center"
+              >
+                <div className="w-full aspect-square rounded-full overflow-hidden bg-white shadow-sm mb-4 border-4 border-transparent group-hover:border-[#A7B99E] transition-all duration-300 relative">
+                  <img 
+                    src={PRODUCTS.find(p => p.category === cat)?.image} 
+                    alt={cat}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <h3 className="text-center font-medium text-[#242824] group-hover:text-[#244C3A]">{cat}</h3>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Bestsellers */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-end mb-10">
+            <h2 className="text-3xl font-bold text-[#244C3A]">Our Bestsellers</h2>
+            <button onClick={() => navigateTo('shop')} className="text-[#244C3A] font-medium hover:underline flex items-center">
+              View All <ChevronRight size={16} />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {PRODUCTS.slice(0, 4).map(product => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Impact Section */}
+      <section className="py-20 bg-[#A7B99E]/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Leaf className="h-12 w-12 text-[#244C3A] mx-auto mb-6" />
+          <h2 className="text-3xl font-bold text-[#244C3A] mb-6">Good for Your Routine. Kinder to the Planet.</h2>
+          <p className="max-w-2xl mx-auto text-lg text-gray-700 mb-12">
+            Every product at EcoNest is vetted for materials, durability, and end-of-life impact. 
+            We believe that small, everyday swaps create massive waves of positive change over time.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-6 bg-white rounded-2xl shadow-sm">
+              <h4 className="text-xl font-bold text-[#244C3A] mb-2">100% Carbon Neutral</h4>
+              <p className="text-gray-600">Shipping emissions are offset for every single order.*</p>
+            </div>
+            <div className="p-6 bg-white rounded-2xl shadow-sm">
+              <h4 className="text-xl font-bold text-[#244C3A] mb-2">Plastic-Free Packaging</h4>
+              <p className="text-gray-600">We use only recycled, recyclable, or compostable materials.</p>
+            </div>
+            <div className="p-6 bg-white rounded-2xl shadow-sm">
+              <h4 className="text-xl font-bold text-[#244C3A] mb-2">Ethical Sourcing</h4>
+              <p className="text-gray-600">Partnering only with manufacturers who treat workers fairly.</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-8">*Illustrative data for demonstration purposes.</p>
+        </div>
+      </section>
+    </div>
+  );
+
+  const ShopView = () => {
+    const [sortOption, setSortOption] = useState('featured');
+    const [priceRange, setPriceRange] = useState(5000);
+
+    const filteredProducts = useMemo(() => {
+      let result = PRODUCTS;
+      
+      // Category Filter
+      if (selectedCategory !== 'All') {
+        result = result.filter(p => p.category === selectedCategory);
+      }
+      
+      // Search Filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        result = result.filter(p => 
+          p.name.toLowerCase().includes(query) || 
+          p.category.toLowerCase().includes(query) ||
+          p.desc.toLowerCase().includes(query)
+        );
+      }
+
+      // Price Filter
+      result = result.filter(p => p.price <= priceRange);
+
+      // Sorting
+      switch (sortOption) {
+        case 'price-low': result.sort((a, b) => a.price - b.price); break;
+        case 'price-high': result.sort((a, b) => b.price - a.price); break;
+        case 'rating': result.sort((a, b) => b.rating - a.rating); break;
+        case 'newest': result.sort((a, b) => (b.isNew === a.isNew) ? 0 : b.isNew ? 1 : -1); break;
+        default: break; // featured
+      }
+
+      return result;
+    }, [selectedCategory, searchQuery, priceRange, sortOption]);
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in">
+        
+        {/* Breadcrumbs & Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-[#244C3A]">
+            {selectedCategory === 'All' ? 'All Products' : selectedCategory}
+          </h1>
+          <p className="text-gray-500 mt-2">Showing {filteredProducts.length} results</p>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Filters */}
+          <div className="lg:w-1/4 flex-shrink-0 space-y-8">
+            
+            {/* Search */}
+            <div>
+              <div className="relative">
+                <input
+                  id="searchInput"
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-[#E7DDCB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A7B99E]"
+                />
+                <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                {searchQuery && (
+                   <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                     <X size={16} />
+                   </button>
+                )}
+              </div>
+            </div>
+
+            {/* Categories */}
+            <div>
+              <h3 className="font-semibold text-[#242824] mb-4 flex items-center"><Filter size={18} className="mr-2"/> Categories</h3>
+              <ul className="space-y-2">
+                <li>
+                  <button 
+                    onClick={() => setSelectedCategory('All')}
+                    className={`text-sm ${selectedCategory === 'All' ? 'font-bold text-[#244C3A]' : 'text-gray-600 hover:text-[#244C3A]'}`}
+                  >
+                    All Products
+                  </button>
+                </li>
+                {CATEGORIES.map(cat => (
+                  <li key={cat}>
+                    <button 
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`text-sm ${selectedCategory === cat ? 'font-bold text-[#244C3A]' : 'text-gray-600 hover:text-[#244C3A]'}`}
+                    >
+                      {cat}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <h3 className="font-semibold text-[#242824] mb-4">Max Price: {formatCurrency(priceRange)}</h3>
+              <input 
+                type="range" 
+                min="100" max="5000" step="100"
+                value={priceRange}
+                onChange={(e) => setPriceRange(Number(e.target.value))}
+                className="w-full accent-[#244C3A]"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>₹100</span>
+                <span>₹5,000+</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Product Grid */}
+          <div className="lg:w-3/4">
+            {/* Sort Bar */}
+            <div className="flex justify-end mb-6">
+              <select 
+                value={sortOption} 
+                onChange={(e) => setSortOption(e.target.value)}
+                className="border border-[#E7DDCB] rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#A7B99E] bg-white"
+              >
+                <option value="featured">Featured</option>
+                <option value="newest">Newest Arrivals</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+              </select>
+            </div>
+
+            {filteredProducts.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-xl border border-dashed border-[#A7B99E]">
+                <p className="text-xl text-gray-500 mb-4">No products found matching your criteria.</p>
+                <button 
+                  onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setPriceRange(5000); }}
+                  className="text-[#244C3A] underline font-medium"
+                >
+                  Clear all filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ProductDetailView = () => {
+    if (!selectedProduct) return null;
+    const p = selectedProduct;
+    const [qty, setQty] = useState(1);
+    const [addedToast, setAddedToast] = useState(false);
+
+    const handleAdd = () => {
+      addToCart(p, qty);
+      setAddedToast(true);
+      setTimeout(() => setAddedToast(false), 3000);
+    };
+
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in">
+        <button 
+          onClick={() => navigateTo('shop')}
+          className="flex items-center text-gray-500 hover:text-[#244C3A] mb-8 transition-colors"
+        >
+          <ArrowLeft size={16} className="mr-2" /> Back to Shop
+        </button>
+
+        <div className="flex flex-col md:flex-row gap-12 bg-white p-6 md:p-10 rounded-2xl shadow-sm">
+          {/* Images */}
+          <div className="md:w-1/2">
+            <div className="aspect-w-1 aspect-h-1 rounded-xl overflow-hidden bg-gray-100">
+              <img src={p.image} alt={p.name} className="w-full h-full object-cover object-center" />
+            </div>
+          </div>
+
+          {/* Details */}
+          <div className="md:w-1/2 flex flex-col">
+            <p className="text-[#A7B99E] font-medium mb-2">{p.category}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-[#244C3A] mb-4">{p.name}</h1>
+            
+            <div className="flex items-center mb-6">
+              <div className="flex">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`h-5 w-5 ${i < Math.floor(p.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                ))}
+              </div>
+              <span className="text-gray-500 ml-2 text-sm">({p.reviews} reviews)</span>
+            </div>
+
+            <div className="mb-6 flex items-end">
+              <span className="text-3xl font-bold text-[#242824]">{formatCurrency(p.price)}</span>
+              {p.originalPrice && (
+                <span className="text-xl text-gray-400 line-through ml-3 mb-1">{formatCurrency(p.originalPrice)}</span>
+              )}
+            </div>
+
+            <p className="text-gray-700 mb-8 leading-relaxed">{p.desc}</p>
+
+            <div className="bg-[#F8F6EF] p-4 rounded-lg mb-8">
+              <h4 className="font-semibold text-[#242824] mb-2 flex items-center">
+                <Leaf size={16} className="text-[#244C3A] mr-2"/> Materials & Specs
+              </h4>
+              <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 mb-3">
+                {p.materials.map((m, i) => <li key={i}>{m}</li>)}
+              </ul>
+              <p className="text-sm text-gray-600 font-medium">{p.specs}</p>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-auto border-t border-gray-100 pt-6">
+              <div className="flex items-center mb-4 text-sm">
+                <div className={`w-3 h-3 rounded-full mr-2 ${p.stock > 10 ? 'bg-green-500' : 'bg-orange-500'}`}></div>
+                <span className={p.stock > 10 ? 'text-green-700' : 'text-orange-700'}>
+                  {p.stock > 10 ? 'In Stock & Ready to Ship' : `Only ${p.stock} left in stock`}
+                </span>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex border border-[#E7DDCB] rounded-lg items-center bg-white h-12 w-32">
+                  <button 
+                    onClick={() => setQty(Math.max(1, qty - 1))}
+                    className="w-10 h-full flex items-center justify-center text-gray-500 hover:text-[#244C3A]"
+                  ><Minus size={16}/></button>
+                  <span className="flex-1 text-center font-medium">{qty}</span>
+                  <button 
+                    onClick={() => setQty(Math.min(p.stock, qty + 1))}
+                    className="w-10 h-full flex items-center justify-center text-gray-500 hover:text-[#244C3A]"
+                  ><Plus size={16}/></button>
+                </div>
+                
+                <button 
+                  onClick={handleAdd}
+                  className="flex-1 bg-[#244C3A] text-white rounded-lg h-12 font-semibold hover:bg-[#1c3a2c] transition-colors relative overflow-hidden"
+                >
+                  {addedToast ? (
+                    <span className="flex items-center justify-center animate-in slide-in-from-bottom"><CheckCircle2 className="mr-2" size={20}/> Added to Cart</span>
+                  ) : 'Add to Cart'}
+                </button>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const CartView = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in min-h-[60vh]">
+      <h1 className="text-3xl font-bold text-[#244C3A] mb-8">Your Shopping Cart</h1>
+      
+      {cart.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl shadow-sm">
+          <ShoppingCart className="h-16 w-16 text-[#A7B99E] mx-auto mb-4" />
+          <h2 className="text-2xl font-medium text-gray-700 mb-2">Your cart is empty</h2>
+          <p className="text-gray-500 mb-8">Looks like you haven't made any sustainable choices yet.</p>
+          <button 
+            onClick={() => navigateTo('shop')}
+            className="bg-[#244C3A] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#1c3a2c] transition-colors"
+          >
+            Start Shopping
+          </button>
+        </div>
+      ) : (
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Cart Items */}
+          <div className="lg:w-2/3 bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="flow-root">
+                <ul className="-my-6 divide-y divide-gray-200">
+                  {cart.map((item) => (
+                    <li key={item.id} className="py-6 flex">
+                      <div className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-md overflow-hidden">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover object-center" />
+                      </div>
+
+                      <div className="ml-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex justify-between text-base font-medium text-gray-900">
+                            <h3 className="line-clamp-2"><a href="#">{item.name}</a></h3>
+                            <p className="ml-4">{formatCurrency(item.price * item.quantity)}</p>
+                          </div>
+                          <p className="mt-1 text-sm text-gray-500">{formatCurrency(item.price)} each</p>
+                        </div>
+                        <div className="flex items-end justify-between text-sm">
+                          <div className="flex border border-gray-300 rounded items-center bg-white h-8">
+                            <button 
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-100"
+                            ><Minus size={14}/></button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <button 
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-100"
+                            ><Plus size={14}/></button>
+                          </div>
+                          <button 
+                            type="button" 
+                            onClick={() => removeFromCart(item.id)}
+                            className="font-medium text-red-500 hover:text-red-600 flex items-center"
+                          >
+                            <Trash2 size={16} className="mr-1"/> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Summary */}
+          <div className="lg:w-1/3">
+            <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
+              <h2 className="text-xl font-bold text-[#242824] mb-6">Order Summary</h2>
+              
+              <div className="space-y-4 mb-6 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal ({cartItemCount} items)</span>
+                  <span className="font-medium">{formatCurrency(cartSubtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Estimated Tax (5%)</span>
+                  <span className="font-medium">{formatCurrency(tax)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Delivery</span>
+                  <span className="font-medium">{deliveryCharge === 0 ? <span className="text-green-600 font-semibold">Free</span> : formatCurrency(deliveryCharge)}</span>
+                </div>
+                {deliveryCharge > 0 && (
+                  <p className="text-xs text-gray-500 mt-1">Add {formatCurrency(2000 - cartSubtotal)} more to cart for FREE delivery.</p>
+                )}
+              </div>
+              
+              <div className="border-t border-gray-200 pt-4 mb-8">
+                <div className="flex justify-between text-lg font-bold text-[#242824]">
+                  <span>Total</span>
+                  <span>{formatCurrency(cartTotal)}</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => { setCheckoutStep(1); navigateTo('checkout'); }}
+                className="w-full bg-[#244C3A] text-white rounded-lg h-12 font-semibold hover:bg-[#1c3a2c] transition-colors flex items-center justify-center"
+              >
+                Proceed to Checkout <ChevronRight size={18} className="ml-1"/>
+              </button>
+              
+              <p className="text-xs text-center text-gray-500 mt-4 flex items-center justify-center">
+                <ShieldCheck size={14} className="mr-1" /> Secure Checkout
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  const CheckoutView = () => {
+    const [errors, setErrors] = useState({});
+
+    // Redirect to cart if empty
+    useEffect(() => {
+      if (cart.length === 0 && checkoutStep !== 4) { // Step 4 is confirmation
+        navigateTo('cart');
+      }
+    }, [cart.length, checkoutStep]);
+
+    const handleInputChange = (e) => {
+      const { name, value } = e.target;
+      setCustomerDetails(prev => ({ ...prev, [name]: value }));
+      // Clear error on type
+      if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+    };
+
+    const validateStep1 = () => {
+      const newErrors = {};
+      if (!customerDetails.fullName.trim()) newErrors.fullName = 'Full Name is required';
+      if (!/^\S+@\S+\.\S+$/.test(customerDetails.email)) newErrors.email = 'Valid email is required';
+      if (!/^\d{10}$/.test(customerDetails.mobile)) newErrors.mobile = 'Valid 10-digit mobile number required';
+      if (!customerDetails.address.trim()) newErrors.address = 'House/Flat No. is required';
+      if (!customerDetails.street.trim()) newErrors.street = 'Street/Area is required';
+      if (!customerDetails.city.trim()) newErrors.city = 'City is required';
+      if (!customerDetails.state.trim()) newErrors.state = 'State is required';
+      if (!/^\d{6}$/.test(customerDetails.pinCode)) newErrors.pinCode = 'Valid 6-digit PIN required';
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    };
+
+    const submitOrder = () => {
+      if (!paymentMethod) {
+        setErrors({ payment: 'Please select a payment method' });
+        return;
+      }
+      
+      const orderData = {
+        orderId: generateOrderId(),
+        date: new Date().toLocaleString(),
+        items: [...cart],
+        subtotal: cartSubtotal,
+        tax: tax,
+        delivery: deliveryCharge,
+        total: cartTotal,
+        customer: customerDetails,
+        payment: { method: paymentMethod, status: paymentMethod === 'COD' ? 'Pending (COD)' : 'Completed (Demo)' }
+      };
+
+      setCompletedOrder(orderData);
+      setOrders(prev => [orderData, ...prev]);
+      setCart([]); // Clear cart
+      setCheckoutStep(4);
+    };
+
+    if (checkoutStep === 4 && completedOrder) {
+      return <OrderConfirmationView order={completedOrder} />;
+    }
+
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in">
+        {/* Progress Bar */}
+        <div className="mb-10">
+          <div className="flex items-center justify-center space-x-4">
+             <div className={`flex items-center ${checkoutStep >= 1 ? 'text-[#244C3A]' : 'text-gray-400'}`}>
+               <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold mr-2 border-current">1</span>
+               <span className="font-medium hidden sm:inline">Details</span>
+             </div>
+             <div className="w-12 sm:w-24 h-px bg-gray-300"></div>
+             <div className={`flex items-center ${checkoutStep >= 2 ? 'text-[#244C3A]' : 'text-gray-400'}`}>
+               <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold mr-2 border-current">2</span>
+               <span className="font-medium hidden sm:inline">Payment</span>
+             </div>
+             <div className="w-12 sm:w-24 h-px bg-gray-300"></div>
+             <div className={`flex items-center ${checkoutStep >= 3 ? 'text-[#244C3A]' : 'text-gray-400'}`}>
+               <span className="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold mr-2 border-current">3</span>
+               <span className="font-medium hidden sm:inline">Review</span>
+             </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Main Form Area */}
+          <div className="lg:w-2/3">
+            
+            {/* STEP 1: Details */}
+            {checkoutStep === 1 && (
+              <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm">
+                <h2 className="text-2xl font-bold text-[#242824] mb-6">Shipping Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="fullName" value={customerDetails.fullName} onChange={handleInputChange} placeholder="e.g., Aarav Sharma"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.fullName ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" name="email" value={customerDetails.email} onChange={handleInputChange} placeholder="aarav@example.com"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
+                    <input type="tel" name="mobile" value={customerDetails.mobile} onChange={handleInputChange} placeholder="9876543210" maxLength="10"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.mobile ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">House/Flat No. & Building</label>
+                    <input type="text" name="address" value={customerDetails.address} onChange={handleInputChange} placeholder="Flat 204, Green Residency"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.address ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Street and Area</label>
+                    <input type="text" name="street" value={customerDetails.street} onChange={handleInputChange} placeholder="Near Central Market"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.street ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.street && <p className="text-red-500 text-xs mt-1">{errors.street}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Landmark (Optional)</label>
+                    <input type="text" name="landmark" value={customerDetails.landmark} onChange={handleInputChange} placeholder="Opposite Metro Station"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#A7B99E] focus:outline-none" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code</label>
+                    <input type="text" name="pinCode" value={customerDetails.pinCode} onChange={handleInputChange} placeholder="380001" maxLength="6"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.pinCode ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.pinCode && <p className="text-red-500 text-xs mt-1">{errors.pinCode}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
+                    <input type="text" name="city" value={customerDetails.city} onChange={handleInputChange} placeholder="Ahmedabad"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.city ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.city && <p className="text-red-500 text-xs mt-1">{errors.city}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State</label>
+                    <input type="text" name="state" value={customerDetails.state} onChange={handleInputChange} placeholder="Gujarat"
+                      className={`w-full p-3 border rounded-lg focus:ring-2 focus:outline-none ${errors.state ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-[#A7B99E]'}`} />
+                    {errors.state && <p className="text-red-500 text-xs mt-1">{errors.state}</p>}
+                  </div>
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button 
+                    onClick={() => { if(validateStep1()) setCheckoutStep(2); }}
+                    className="bg-[#244C3A] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#1c3a2c] transition-colors"
+                  >
+                    Continue to Payment
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: Payment */}
+            {checkoutStep === 2 && (
+              <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm animate-in slide-in-from-right">
+                <div className="flex items-center mb-6">
+                  <button onClick={() => setCheckoutStep(1)} className="mr-4 text-gray-400 hover:text-[#244C3A]"><ArrowLeft size={20}/></button>
+                  <h2 className="text-2xl font-bold text-[#242824]">Payment Method</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {[
+                    { id: 'Card', label: 'Credit / Debit Card', icon: <CreditCard size={20} className="mr-3 text-gray-500"/> },
+                    { id: 'UPI', label: 'UPI (GPay, PhonePe, etc.)', icon: <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" className="h-5 mr-3 opacity-60"/> },
+                    { id: 'NetBanking', label: 'Net Banking', icon: <ShieldCheck size={20} className="mr-3 text-gray-500"/> },
+                    { id: 'COD', label: 'Cash on Delivery', icon: <Truck size={20} className="mr-3 text-gray-500"/> },
+                  ].map(method => (
+                    <label key={method.id} className={`flex items-center p-4 border rounded-xl cursor-pointer transition-colors ${paymentMethod === method.id ? 'border-[#244C3A] bg-[#244C3A]/5' : 'border-gray-200 hover:bg-gray-50'}`}>
+                      <input type="radio" name="payment" value={method.id} checked={paymentMethod === method.id} onChange={(e) => setPaymentMethod(e.target.value)} className="w-5 h-5 text-[#244C3A] focus:ring-[#244C3A] mr-4" />
+                      {method.icon}
+                      <span className="font-medium text-gray-800">{method.label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {errors.payment && <p className="text-red-500 text-sm mt-4 text-center">{errors.payment}</p>}
+
+                <div className="mt-8 bg-blue-50 text-blue-800 text-sm p-4 rounded-lg flex items-start">
+                  <span className="font-bold mr-2">Note:</span> This is a demonstration environment. No real payments will be processed. Selecting any option acts as a mock transaction.
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button 
+                    onClick={() => { if(paymentMethod) { setErrors({}); setCheckoutStep(3); } else { setErrors({payment: 'Select a method'});} }}
+                    className="bg-[#244C3A] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#1c3a2c] transition-colors"
+                  >
+                    Review Order
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Review */}
+            {checkoutStep === 3 && (
+              <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm animate-in slide-in-from-right">
+                <div className="flex items-center mb-6">
+                  <button onClick={() => setCheckoutStep(2)} className="mr-4 text-gray-400 hover:text-[#244C3A]"><ArrowLeft size={20}/></button>
+                  <h2 className="text-2xl font-bold text-[#242824]">Review Your Order</h2>
+                </div>
+                
+                <div className="border border-gray-200 rounded-xl p-6 mb-6">
+                  <h3 className="font-bold text-lg mb-4 border-b pb-2">Shipping Details <button onClick={()=>setCheckoutStep(1)} className="text-sm font-normal text-[#244C3A] float-right underline">Edit</button></h3>
+                  <p className="text-gray-700">{customerDetails.fullName}</p>
+                  <p className="text-gray-700">{customerDetails.address}, {customerDetails.street}</p>
+                  <p className="text-gray-700">{customerDetails.city}, {customerDetails.state} {customerDetails.pinCode}</p>
+                  <p className="text-gray-700 mt-2">📞 {customerDetails.mobile}</p>
+                  <p className="text-gray-700">✉️ {customerDetails.email}</p>
+                </div>
+
+                <div className="border border-gray-200 rounded-xl p-6 mb-6">
+                  <h3 className="font-bold text-lg mb-4 border-b pb-2">Payment Method <button onClick={()=>setCheckoutStep(2)} className="text-sm font-normal text-[#244C3A] float-right underline">Edit</button></h3>
+                  <p className="text-gray-700 font-medium">{paymentMethod === 'COD' ? 'Cash on Delivery' : paymentMethod}</p>
+                  {paymentMethod === 'COD' && <p className="text-sm text-gray-500 mt-1">Payment to be collected at the time of delivery.</p>}
+                </div>
+
+                <div className="mt-8 flex justify-end">
+                  <button 
+                    onClick={submitOrder}
+                    className="w-full md:w-auto bg-[#244C3A] text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-[#1c3a2c] transition-colors shadow-lg"
+                  >
+                    Place Order ({formatCurrency(cartTotal)})
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sticky Summary */}
+          <div className="lg:w-1/3">
+            <div className="bg-[#F8F6EF] rounded-2xl p-6 sticky top-24 border border-[#E7DDCB]">
+              <h3 className="font-bold text-lg mb-4">In Your Cart</h3>
+              <div className="max-h-60 overflow-y-auto pr-2 mb-4 space-y-3 scrollbar-thin">
+                {cart.map(item => (
+                  <div key={item.id} className="flex gap-3 text-sm">
+                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
+                    <div className="flex-1">
+                      <p className="font-medium line-clamp-1">{item.name}</p>
+                      <p className="text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="font-medium">{formatCurrency(item.price * item.quantity)}</div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="border-t border-[#E7DDCB] pt-4 space-y-2 text-sm">
+                <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(cartSubtotal)}</span></div>
+                <div className="flex justify-between"><span>Tax (5%)</span><span>{formatCurrency(tax)}</span></div>
+                <div className="flex justify-between"><span>Delivery</span><span>{deliveryCharge === 0 ? 'Free' : formatCurrency(deliveryCharge)}</span></div>
+                <div className="flex justify-between font-bold text-lg pt-2 mt-2 border-t border-[#E7DDCB]">
+                  <span>Total</span><span>{formatCurrency(cartTotal)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  };
+
+  const OrderConfirmationView = ({ order }) => {
+    // Hidden invoice logic uses standard print functionality
+    const handlePrint = () => {
+      window.print();
+    };
+
+    const handleDownloadPDF = () => {
+      const element = document.getElementById('invoice-print');
+      if (!element) return;
+      
+      // Temporarily display the block to allow rendering by html2pdf
+      const originalDisplay = element.style.display;
+      element.style.display = 'block';
+      
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      script.onload = () => {
+         const opt = {
+           margin:       0.5,
+           filename:     `EcoNest-Invoice-${order.orderId}.pdf`,
+           image:        { type: 'jpeg', quality: 0.98 },
+           html2canvas:  { scale: 2 },
+           jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+         };
+         window.html2pdf().set(opt).from(element).save().then(() => {
+            element.style.display = originalDisplay; // reset display
+         });
+      };
+      document.body.appendChild(script);
+    };
+
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 animate-in zoom-in-95 duration-500">
+        <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12 text-center no-print border-t-8 border-[#244C3A]">
+          <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+            <CheckCircle2 className="h-12 w-12 text-[#244C3A]" />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold text-[#242824] mb-2">Thank You for Choosing Greener Living!</h1>
+          <p className="text-gray-500 mb-8 text-lg">Your order has been successfully placed.</p>
+          
+          <div className="bg-[#F8F6EF] rounded-2xl p-6 text-left mb-8 inline-block w-full max-w-2xl border border-[#E7DDCB]">
+            <div className="grid grid-cols-2 gap-y-4 text-sm md:text-base">
+              <div className="text-gray-500">Order Number:</div>
+              <div className="font-bold text-[#242824] text-right">{order.orderId}</div>
+              
+              <div className="text-gray-500">Date:</div>
+              <div className="font-medium text-right">{order.date}</div>
+              
+              <div className="text-gray-500">Payment Status:</div>
+              <div className="font-medium text-right">{order.payment.status}</div>
+
+              <div className="text-gray-500">Amount Paid:</div>
+              <div className="font-bold text-[#244C3A] text-right">{formatCurrency(order.total)}</div>
+            </div>
+          </div>
+
+          <p className="text-gray-600 mb-8">
+            An email confirmation has been sent to <strong>{order.customer.email}</strong>.<br/>
+            Estimated delivery by: <span className="font-semibold text-[#242824]">
+              {new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </span> (Estimate)
+          </p>
+
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <button 
+              onClick={handlePrint}
+              className="flex items-center justify-center bg-white border-2 border-[#244C3A] text-[#244C3A] px-6 py-3 rounded-full font-semibold hover:bg-[#F8F6EF] transition-colors"
+            >
+              <Printer className="mr-2" size={18}/> Print Invoice
+            </button>
+            <button 
+              onClick={handleDownloadPDF}
+              className="flex items-center justify-center bg-[#244C3A] text-white px-6 py-3 rounded-full font-semibold hover:bg-[#1c3a2c] transition-colors shadow-md"
+            >
+              <Download className="mr-2" size={18}/> Download PDF
+            </button>
+            <button 
+              onClick={() => { setCompletedOrder(null); navigateTo('home'); }}
+              className="flex items-center justify-center bg-transparent border-2 border-gray-300 text-gray-700 px-6 py-3 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Continue Shopping
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-4">Tip: To save as PDF via Print, select "Save as PDF" in the print dialog.</p>
+        </div>
+
+        {/* --- INVOICE PRINT TEMPLATE (Hidden from normal view, shown in print) --- */}
+        <div id="invoice-print" className="hidden print:block bg-white text-black p-8 absolute top-0 left-0 w-full font-sans">
+          <div className="border-b-2 border-gray-800 pb-6 mb-6 flex justify-between items-end">
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter text-[#244C3A] mb-2 flex items-center">
+                <Leaf className="mr-2" size={32}/> EcoNest
+              </h1>
+              <p className="text-sm text-gray-600">Small Swaps. Greener Tomorrow.</p>
+            </div>
+            <div className="text-right">
+              <h2 className="text-2xl font-bold uppercase text-gray-400">Tax Invoice</h2>
+              <p className="text-sm mt-1"><strong>Invoice #:</strong> INV-{order.orderId}</p>
+              <p className="text-sm"><strong>Date:</strong> {order.date}</p>
+            </div>
+          </div>
+
+          <div className="flex justify-between mb-10">
+            <div className="w-1/2">
+              <h3 className="font-bold text-gray-800 mb-2 border-b pb-1">Billed To (Customer):</h3>
+              <p className="text-sm font-semibold">{order.customer.fullName}</p>
+              <p className="text-sm">{order.customer.address}, {order.customer.street}</p>
+              <p className="text-sm">{order.customer.landmark && `${order.customer.landmark}, `}{order.customer.city}, {order.customer.state} - {order.customer.pinCode}</p>
+              <p className="text-sm">Ph: {order.customer.mobile}</p>
+              <p className="text-sm">Email: {order.customer.email}</p>
+            </div>
+            <div className="w-1/2 text-right">
+              <h3 className="font-bold text-gray-800 mb-2 border-b pb-1 inline-block">Sold By (Demonstration Store):</h3>
+              <p className="text-sm font-semibold">EcoNest Retail Pvt. Ltd.</p>
+              <p className="text-sm">123 Green Avenue, Eco Park</p>
+              <p className="text-sm">Bengaluru, Karnataka - 560001</p>
+              <p className="text-sm">GSTIN: 29XXXXX1234X1ZX (Demo)</p>
+            </div>
+          </div>
+
+          <table className="w-full text-left mb-8 text-sm">
+            <thead>
+              <tr className="bg-gray-100 text-gray-800 uppercase text-xs">
+                <th className="py-3 px-4 rounded-tl-lg">Item Description</th>
+                <th className="py-3 px-4 text-center">Qty</th>
+                <th className="py-3 px-4 text-right">Unit Price</th>
+                <th className="py-3 px-4 text-right rounded-tr-lg">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.items.map((item, index) => (
+                <tr key={index} className="border-b border-gray-200">
+                  <td className="py-3 px-4">
+                    <span className="font-semibold">{item.name}</span><br/>
+                    <span className="text-xs text-gray-500">SKU: {item.id.toUpperCase()}</span>
+                  </td>
+                  <td className="py-3 px-4 text-center">{item.quantity}</td>
+                  <td className="py-3 px-4 text-right">{formatCurrency(item.price)}</td>
+                  <td className="py-3 px-4 text-right font-medium">{formatCurrency(item.price * item.quantity)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="flex justify-end mb-8">
+            <div className="w-1/2 md:w-1/3">
+              <div className="flex justify-between py-1 text-sm">
+                <span className="text-gray-600">Subtotal:</span>
+                <span>{formatCurrency(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-sm">
+                <span className="text-gray-600">Delivery Charge:</span>
+                <span>{order.delivery === 0 ? 'Free' : formatCurrency(order.delivery)}</span>
+              </div>
+              <div className="flex justify-between py-1 text-sm">
+                <span className="text-gray-600">Estimated Tax (5%):</span>
+                <span>{formatCurrency(order.tax)}</span>
+              </div>
+              <div className="flex justify-between py-3 mt-2 border-t-2 border-gray-800 text-lg font-bold">
+                <span>Grand Total:</span>
+                <span>{formatCurrency(order.total)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-200 pt-4 text-xs text-gray-500 text-center">
+            <p><strong>Payment Method:</strong> {order.payment.method} | <strong>Status:</strong> {order.payment.status}</p>
+            <p className="mt-2">This is a computer-generated invoice and does not require a physical signature.</p>
+            <p className="mt-1">Returns accepted within 30 days. Visit econest.demo/returns for policy details.</p>
+            <p className="font-bold text-gray-800 mt-4 text-sm">Thank you for your purchase!</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ImpactView = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 animate-in fade-in">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <Leaf className="h-16 w-16 text-[#244C3A] mx-auto mb-6" />
+        <h1 className="text-4xl md:text-5xl font-bold text-[#244C3A] mb-6">Our Impact & Philosophy</h1>
+        <p className="text-lg text-gray-600 leading-relaxed">
+          At EcoNest, we believe that sustainability isn't just a buzzword—it's a continuous journey of making better choices. 
+          We're committed to reducing single-use waste without compromising on quality or aesthetics.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#E7DDCB] hover:shadow-md transition-shadow">
+          <h3 className="text-2xl font-bold text-[#242824] mb-4 flex items-center"><Info className="mr-3 text-[#A7B99E]"/> Mindful Sourcing</h3>
+          <p className="text-gray-600 mb-4">We partner directly with manufacturers who share our ethical standards. Our bamboo is sustainably harvested, and our cotton is 100% organic, ensuring fair wages and safe conditions for all workers involved.</p>
+        </div>
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-[#E7DDCB] hover:shadow-md transition-shadow">
+          <h3 className="text-2xl font-bold text-[#242824] mb-4 flex items-center"><Package className="mr-3 text-[#A7B99E]"/> Plastic-Free Packaging</h3>
+          <p className="text-gray-600 mb-4">Every order is shipped in 100% recycled and recyclable cardboard. We use water-activated paper tape and soy-based inks, ensuring your delivery leaves no harmful trace behind.</p>
+        </div>
+      </div>
+
+      <div className="bg-[#244C3A] text-[#F8F6EF] rounded-3xl p-10 md:p-16 text-center shadow-lg">
+        <h2 className="text-3xl font-bold mb-6">Join the Movement</h2>
+        <p className="max-w-2xl mx-auto mb-8 text-[#A7B99E] text-lg">By choosing reusable alternatives, our community has helped prevent an estimated 500,000 plastic bottles and 1 million plastic bags from reaching landfills this year.</p>
+        <button onClick={() => navigateTo('shop')} className="bg-[#F8F6EF] text-[#244C3A] px-8 py-3 rounded-full font-bold hover:bg-white transition-colors">
+          Shop the Collection
+        </button>
+      </div>
+    </div>
+  );
+
+  const OrdersView = () => (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in min-h-[60vh]">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold text-[#244C3A] flex items-center">
+          <History className="mr-3" /> My Order History
+        </h1>
+      </div>
+
+      {orders.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-[#E7DDCB]">
+          <Package className="h-16 w-16 text-[#A7B99E] mx-auto mb-4" />
+          <h2 className="text-2xl font-medium text-gray-700 mb-2">No orders yet</h2>
+          <p className="text-gray-500 mb-8">You haven't placed any sustainable orders with us.</p>
+          <button 
+            onClick={() => navigateTo('shop')}
+            className="bg-[#244C3A] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#1c3a2c] transition-colors"
+          >
+            Start Shopping
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {orders.map((order, idx) => (
+            <div key={idx} className="bg-white rounded-2xl shadow-sm border border-[#E7DDCB] overflow-hidden">
+              <div className="bg-[#F8F6EF] px-6 py-4 border-b border-[#E7DDCB] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Order Placed</p>
+                  <p className="font-semibold text-[#242824]">{order.date}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Total</p>
+                  <p className="font-semibold text-[#242824]">{formatCurrency(order.total)}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-1">Order #</p>
+                  <p className="font-semibold text-[#242824]">{order.orderId}</p>
+                </div>
+                <button 
+                  onClick={() => { setCompletedOrder(order); setCheckoutStep(4); navigateTo('checkout'); }}
+                  className="text-[#244C3A] font-medium hover:bg-[#E7DDCB] text-sm flex items-center border border-[#244C3A] px-4 py-2 rounded-lg bg-white transition-colors"
+                >
+                  View / Download Invoice
+                </button>
+              </div>
+              <div className="p-6">
+                <div className="flex overflow-x-auto gap-4 pb-2 scrollbar-thin">
+                  {order.items.map((item, itemIdx) => (
+                    <div key={itemIdx} className="flex-shrink-0 w-24 h-24 border border-gray-200 rounded-lg overflow-hidden relative shadow-sm">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      <span className="absolute bottom-0 right-0 bg-[#244C3A] text-white text-xs px-2 py-1 font-bold rounded-tl-lg">x{item.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const Footer = () => (
+    <footer className="bg-[#242824] text-[#E7DDCB] py-16 no-print">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div>
+          <div className="flex items-center mb-6">
+            <Leaf className="h-8 w-8 text-[#A7B99E] mr-2" />
+            <span className="font-bold text-2xl tracking-tight text-white">EcoNest</span>
+          </div>
+          <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+            We're on a mission to make sustainable living accessible, beautiful, and practical for everyone. Small swaps for a greener tomorrow.
+          </p>
+        </div>
+        
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Shop</h4>
+          <ul className="space-y-3 text-sm text-gray-400">
+            {CATEGORIES.map(cat => (
+              <li key={cat}><button onClick={() => navigateTo('shop', cat)} className="hover:text-white transition-colors">{cat}</button></li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Support</h4>
+          <ul className="space-y-3 text-sm text-gray-400">
+            <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">FAQs</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Shipping Policy</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Returns & Refunds</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Track Order</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold mb-6 uppercase tracking-wider text-sm">Join Our Newsletter</h4>
+          <p className="text-sm text-gray-400 mb-4">Get 10% off your first order and weekly sustainability tips.</p>
+          <div className="flex">
+            <input type="email" placeholder="Email address" className="bg-white/10 text-white border-0 rounded-l-lg px-4 py-2 w-full focus:outline-none focus:ring-1 focus:ring-[#A7B99E] placeholder-gray-500 text-sm" />
+            <button className="bg-[#A7B99E] text-[#242824] px-4 py-2 rounded-r-lg font-bold hover:bg-white transition-colors text-sm">Subscribe</button>
+          </div>
+          <div className="mt-8">
+             <p className="text-xs text-gray-500 mb-2">Secure Payments (Demo)</p>
+             <div className="flex space-x-2 opacity-50">
+                <CreditCard size={24}/>
+                <ShieldCheck size={24}/>
+             </div>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 pt-8 border-t border-gray-800 text-center text-xs text-gray-500">
+        &copy; {new Date().getFullYear()} EcoNest Prototype. For demonstration purposes only. Not a real store.
+      </div>
+    </footer>
+  );
+
+  return (
+    <>
+      {/* Global Styles specifically for printing */}
+      <style>{`
+        @media print {
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white !important; }
+          .no-print { display: none !important; }
+          #invoice-print { 
+            display: block !important; 
+            position: absolute; 
+            left: 0; top: 0; 
+            width: 100%; 
+            background: white;
+          }
+        }
+        /* Custom scrollbar for a premium feel */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #F8F6EF; }
+        ::-webkit-scrollbar-thumb { background: #A7B99E; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #244C3A; }
+      `}</style>
+      
+      <div className={`min-h-screen font-sans flex flex-col bg-[#F8F6EF] text-[#242824] ${checkoutStep === 4 ? 'print:bg-white' : ''}`}>
+        <div className="no-print sticky top-0 z-50">
+           <Header />
+        </div>
+
+        <main className="flex-grow w-full no-print">
+          {currentView === 'home' && <HomeView />}
+          {currentView === 'shop' && <ShopView />}
+          {currentView === 'product' && <ProductDetailView />}
+          {currentView === 'cart' && <CartView />}
+          {currentView === 'checkout' && <CheckoutView />}
+          {currentView === 'impact' && <ImpactView />}
+          {currentView === 'orders' && <OrdersView />}
+        </main>
+        
+        {/* Render invoice solely for printing if an order is completed */}
+        {completedOrder && checkoutStep === 4 && (
+          <OrderConfirmationView order={completedOrder} />
+        )}
+
+        <div className="no-print mt-auto">
+          <Footer />
+        </div>
+      </div>
+    </>
+  );
+}
